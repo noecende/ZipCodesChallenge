@@ -1,0 +1,70 @@
+version: '3'
+services:
+
+#The Application
+    app:
+        image: zip_challenge
+        container_name: zip_challenge
+        command: sh -c "php artisan octane:start --watch --server=\"swoole\" --host=0.0.0.0 --port=9000"
+           
+        depends_on:
+            - "cache"
+        build:
+
+            context: ./
+
+            dockerfile: docker-compose/app.dockerfile
+
+            args: 
+                COMPOSER_HASH: ${COMPOSER_HASH}
+
+        volumes:
+            - ./app:/var/www/app
+            - ./config:/var/www/config
+            - ./database:/var/www/database
+            - ./graphql:/var/www/graphql
+            - ./routes:/var/www/routes
+            - ./resources:/var/www/resources
+            - ./tests:/var/www/test
+            - ./storage:/var/www/storage
+            - ./public:/var/www/public
+            - ./composer.lock:/var/www/composer.lock
+            - ./composer.json:/var/www/composer.json
+        env_file: .env
+        
+        ports: 
+            - 9000:9000
+    
+    web:
+
+        container_name: nginx_server
+        depends_on:
+            - "app"
+        build:
+
+            context: ./
+
+            dockerfile: docker-compose/web.dockerfile
+
+        volumes:
+            - ./:/var/www
+            - ./docker-compose/nginx:/etc/nginx/conf.d
+            - ./storage/logs/:/var/log/nginx
+
+        ports:
+
+            - 80:80
+        links:
+            - "app:app"
+    
+    cache:
+
+        image: redis:6.2-alpine
+        command: redis-server --requirepass ${REDIS_PASSWORD}
+        ports:
+            - 6379:6379
+
+volumes:
+    dbdata:
+
+
