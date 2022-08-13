@@ -1,0 +1,47 @@
+version: '3'
+services:
+
+#The Application
+    app:
+        image: zip_challenge_production
+        container_name: zip_challenge
+        command: sh -c "php artisan octane:start --watch --server=\"swoole\" --host=0.0.0.0 --port=9000"
+        build:
+
+            context: ./
+
+            dockerfile: docker-compose/app.dockerfile
+
+            args: 
+                COMPOSER_HASH: ${COMPOSER_HASH}
+                ENV_FILE : .env.prod
+
+        volumes:
+            - ./storage:/var/www/storage
+            - ./public:/var/www/public
+        env_file: .env.prod
+        
+        ports: 
+            - 9000:9000
+    
+    web:
+
+        container_name: nginx_server
+        depends_on:
+            - "app"
+        build:
+
+            context: ./
+
+            dockerfile: docker-compose/web.dockerfile
+
+        volumes:
+            - ./:/var/www
+            - ./docker-compose/nginx:/etc/nginx/conf.d
+            - ./storage/logs/:/var/log/nginx
+
+        ports:
+
+            - 80:80
+        links:
+            - "app:app"

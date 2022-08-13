@@ -1,19 +1,18 @@
 FROM openswoole/swoole:4.11-php8.0
 
 ARG COMPOSER_HASH
+ARG ENV_FILE
 ENV COMPOSER_HASH=${COMPOSER_HASH}
+ENV ENV=${ENV_FILE}
 
 COPY composer.json composer.lock /var/www/
-
 
 COPY database /var/www/database
 
 
 WORKDIR /var/www
 
-
 RUN apt-get update && apt-get -y install git && apt-get -y install zip
-
 
 RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
 && php -r "if (hash_file('sha384', 'composer-setup.php') === '${COMPOSER_HASH}') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;"\
@@ -23,6 +22,10 @@ RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
 && composer install --no-scripts
 
 COPY . /var/www
+
+RUN if [ "$ENV_FILE" != ".env" ] ; then \
+        mv $ENV_FILE .env; \
+    fi
 
 RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 
