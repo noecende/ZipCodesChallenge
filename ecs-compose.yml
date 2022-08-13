@@ -1,0 +1,51 @@
+version: '3'
+services:
+#The Application
+    app:
+        image: public.ecr.aws/s8f1y0f6/zipcodes:latest
+        container_name: app
+        command: "php artisan octane:start --server=\"swoole\" --host=\"0.0.0.0\" --port=9000"
+        env_file: .env.prod
+        volumes:
+            - public:/var/www/public
+            - storage:/var/www/storage
+            - storage_app:/var/www/storage/app
+        ports:
+            - 9000:9000
+        logging:
+            driver: awslogs
+            options: 
+                awslogs-group: gmar_ec2
+                awslogs-region: us-east-2
+                awslogs-stream-prefix: web
+
+    web:
+        image: public.ecr.aws/s8f1y0f6/zipcodes_web:latest
+        container_name: nginx
+        env_file: .env.prod
+        links:
+            - app
+        volumes:
+            #- "./docker-compose/prod:/etc/nginx/conf.d"
+            - public:/var/www/public
+            - storage_app:/var/www/storage/app
+            - logs:/var/log/nginx
+            
+        depends_on: 
+            - app
+        ports:
+            - 80:80
+            - 443:443
+        
+        logging:
+            driver: awslogs
+            options: 
+                awslogs-group: gmar_ec2
+                awslogs-region: us-east-2
+                awslogs-stream-prefix: web
+    
+volumes:
+    public:
+    storage:
+    storage_app:
+    logs:

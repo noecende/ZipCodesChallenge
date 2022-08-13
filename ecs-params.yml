@@ -1,0 +1,15 @@
+version: 1
+task_definition:
+  #ecs_network_mode: awsvpc 
+  services:
+      app:
+        cpu_shares: 896
+        mem_limit: "700"
+        ecs_network_mode: awsvpc
+      web: 
+        cpu_shares: 128
+        mem_limit: "200m"
+        ecs_network_mode: awsvpc
+  
+
+        
