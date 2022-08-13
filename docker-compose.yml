@@ -8,7 +8,7 @@ services:
         command: sh -c "php artisan octane:start --watch --server=\"swoole\" --host=0.0.0.0 --port=9000"
            
         depends_on:
-            - "cache"
+            - "database"
         build:
 
             context: ./
@@ -17,6 +17,7 @@ services:
 
             args: 
                 COMPOSER_HASH: ${COMPOSER_HASH}
+                ENV_FILE: ".env"
 
         volumes:
             - ./app:/var/www/app
@@ -71,22 +72,15 @@ services:
 
         environment:
 
-            - “MYSQL_USER=root”
+            - MYSQL_USER=root
 
-            - “MYSQL_PASSWORD=”
+            - MYSQL_PASSWORD=
 
-            - "MYSQL_ALLOW_EMPTY_PASSWORD=true"
+            - MYSQL_ALLOW_EMPTY_PASSWORD=true
 
         ports:
 
             - 3306:3306
-
-    cache:
-
-        image: redis:6.2-alpine
-        command: redis-server --requirepass ${REDIS_PASSWORD}
-        ports:
-            - 6379:6379
 
 volumes:
     dbdata:
