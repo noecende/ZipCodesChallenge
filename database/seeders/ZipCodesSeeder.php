@@ -39,26 +39,26 @@ class ZipCodesSeeder extends Seeder
                 }
                 $currentZipcode = new ZipCode();
                 $currentZipcode->zip_code = $zipcode->d_codigo ? $zipcode->d_codigo : null;
-                $currentZipcode->locality = $zipcode->d_ciudad ? Str::upper($zipcode->d_ciudad) : null;
+                $currentZipcode->locality = $zipcode->d_ciudad ? $this->stripAccents(Str::upper($zipcode->d_ciudad)) : null;
                 $currentZipcode->federal_entity = json_encode([
                     'key' => (int) $zipcode->c_estado,
-                    'name' => Str::upper($zipcode->d_estado),
+                    'name' => $this->stripAccents(Str::upper($zipcode->d_estado)),
                     'code' => null
                 ]);
 
                 $currentZipcode->municipality = json_encode([
                     'key' => (int) $zipcode->c_mnpio,
-                    'name' => Str::upper($zipcode->D_mnpio)
+                    'name' => $this->stripAccents(Str::upper($zipcode->D_mnpio))
                 ]);
             }
 
            
             array_push($settlements, [
                 'key' => ((int) $zipcode->id_asenta_cpcons),
-                'name' => Str::upper($zipcode->d_asenta),
-                'zone_type' => Str::upper($zipcode->d_zona),
+                'name' => $this->stripAccents(Str::upper($zipcode->d_asenta)),
+                'zone_type' => $this->stripAccents(Str::upper($zipcode->d_zona)),
                 'settlement_type' => [
-                    "name" => (string) $zipcode->d_tipo_asenta
+                    "name" => (string) $this->stripAccents($zipcode->d_tipo_asenta)
                 ]
             ]);
             
@@ -67,5 +67,10 @@ class ZipCodesSeeder extends Seeder
 
         $currentZipcode->save(); //Guarda el último código postal que no entró en la iteración.
         
+    }
+
+    function stripAccents($str) 
+    {
+        return utf8_encode(strtr(utf8_decode($str), utf8_decode('àáâãäçèéêëìíîïñòóôõöùúûüýÿÀÁÂÃÄÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝ'), 'aaaaaceeeeiiiinooooouuuuyyAAAAACEEEEIIIINOOOOOUUUUY'));
     }
 }
